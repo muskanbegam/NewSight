@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-red-50 h-full">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NewSight</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="font-sans antialiased h-full relative bg-black">
+  <button id="menuBtn" class="fixed top-4 right-4 p-2 rounded text-white z-50" aria-label="Open sign-in modal">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round"
+      stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+  </button>
+  {% if so == 0 %}
+
+  <!-- Modal backdrop & dialog (hidden by default) -->
+  <div id="modalBackdrop" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-40"
+    role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+    <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6 text-center border-2 border-black mx-4">
+      <h2 id="modalTitle" class="text-2xl font-semibold mb-4 text-black">Please Sign In</h2>
+      <p id="modalDesc" class="mb-6 text-black text-base sm:text-lg leading-relaxed">
+        You need to sign in to continue.
+      </p>
+      <div class="flex justify-center gap-4">
+        <button id="signInRedirect" onclick="window.location.href=`{{ url_for('login')}}`"
+          class="bg-red-500 text-white py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-white transition-none">
+          Go to Sign In
+        </button>
+
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div id="modalBackdrop" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-40"
+    role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc">
+    <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6 text-center border-2 border-black mx-4">
+      <h2 id="modalTitle" class="text-2xl font-semibold mb-4 text-black">What to Log Out</h2>
+      <p id="modalDesc" class="mb-6 text-black text-base sm:text-lg leading-relaxed">
+        Want to take a break? Click here to log out.
+      </p>
+      <div class="flex justify-center gap-4">
+        <button id="signInRedirect" onclick="window.location.href=`{{ url_for('loggedIn',so=0)}}`"
+          class="bg-red-500 text-white py-2 px-6 rounded-md focus:outline-none focus:ring-2 focus:ring-white transition-none">
+          Log Out
+        </button>
+
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="h-screen overflow-y-scroll snap-y snap-mandatory scroll-smooth">
+    {% for i in range(0, length) %}
+    <main class="flex flex-col lg:flex-row h-screen snap-start">
+      <!-- Image div -->
+      <section class="lg:w-1/2 w-full h-[30vh] lg:h-full">
+        <img src="{{ data[i].image }}" alt="Demo" class="object-cover w-full h-full" />
+      </section>
+
+      <!-- Text content -->
+      <section
+        class="flex flex-col justify-center px-4 sm:px-6 lg:px-8 py-6 lg:w-1/2 w-full h-[60vh] lg:h-full bg-black max-w-3xl lg:max-w-none mx-auto lg:mx-0">
+        <h1 class="text-2xl sm:text-3xl lg:text-5xl font-extrabold mb-4 sm:mb-6 leading-tight text-white mt-4">
+          {{ data[i].heading }}
+        </h1>
+        <h2 class="text-lg sm:text-xl lg:text-3xl font-semibold mb-6 sm:mb-8 leading-snug text-white">
+          {{ data[i].subheading }}
+        </h2>
+        <p
+          class="text-white text-sm sm:text-base lg:text-lg leading-relaxed mb-8 sm:mb-12 lg:max-w-full sm:max-w-prose">
+          {{ data[i].content }}
+        </p>
+        <button onclick="window.open('{{ data[i].link }}', '_blank')"
+          class="w-full max-w-full sm:max-w-xs bg-red-600 text-white py-3 rounded-md hover:bg-red-700 transition font-semibold tracking-wide">
+          Learn More
+        </button>
+      </section>
+    </main>
+    {% endfor %}
+  </div>
+
+
+
+  <script>
+    const menuBtn = document.getElementById('menuBtn');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const signInRedirect = document.getElementById('signInRedirect');
+
+    // Show modal on hamburger click
+    menuBtn.addEventListener('click', () => {
+      modalBackdrop.classList.remove('hidden');
+    });
+
+
+    // Close modal if clicking outside the dialog
+    modalBackdrop.addEventListener('click', (e) => {
+      if (e.target === modalBackdrop) {
+        modalBackdrop.classList.add('hidden');
+      }
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modalBackdrop.classList.contains('hidden')) {
+        modalBackdrop.classList.add('hidden');
+      }
+    });
+    (() => {
+      const container = document.querySelector('div.h-screen.overflow-y-scroll');
+      if (!container) return;
+
+      const sections = container.querySelectorAll('main');
+      let currentIndex = 0;
+      let isAnimating = false;
+
+      // Scroll instantly to the current section on load
+      function scrollToSection(index) {
+        container.scrollTo({
+          top: sections[index].offsetTop,
+          behavior: 'smooth'
+        });
+      }
+
+      scrollToSection(currentIndex);
+
+      // Listen to wheel events to override normal scroll
+      container.addEventListener('wheel', (e) => {
+        if (isAnimating) {
+          e.preventDefault();
+          return;
+        }
+
+        if (e.deltaY > 0) {
+          // scroll down
+          if (currentIndex < sections.length - 1) {
+            currentIndex++;
+            isAnimating = true;
+            scrollToSection(currentIndex);
+            setTimeout(() => { isAnimating = false; }, 700);
+          }
+          e.preventDefault();
+        } else if (e.deltaY < 0) {
+          // scroll up
+          if (currentIndex > 0) {
+            currentIndex--;
+            isAnimating = true;
+            scrollToSection(currentIndex);
+            setTimeout(() => { isAnimating = false; }, 700);
+          }
+          e.preventDefault();
+        }
+      }, { passive: false });
+
+      // Optional: snap to section on manual scroll (if any)
+      let scrollTimeout;
+      container.addEventListener('scroll', () => {
+        if (isAnimating) return;
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          let closestIndex = 0;
+          let closestDistance = Infinity;
+          sections.forEach((section, i) => {
+            const distance = Math.abs(container.scrollTop - section.offsetTop);
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestIndex = i;
+            }
+          });
+          currentIndex = closestIndex;
+          scrollToSection(currentIndex);
+        }, 100);
+      });
+    })();
+
+    window.addEventListener('load', () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            console.log('User allowed location:', position.coords);
+
+            // Send location to the Flask server
+            fetch('/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude
+              })
+            })
+              .then(response => response.json())
+              .then(data => console.log('Server response:', data))
+              .catch(error => console.error('Error sending location:', error));
+          },
+          (error) => {
+            console.log('User denied location:', error.message);
+          }
+        );
+      } else {
+        console.log('Geolocation is not supported by this browser.');
+      }
+    });
+  </script>
+</body>
+
+</html>
